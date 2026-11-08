@@ -198,6 +198,16 @@ Not in git: partition backups, live device trees, recovery images, Apple firmwar
 
 More in [`NOTES.md`](NOTES.md).
 
+## Galaxy S10 Exynos target
+
+An experimental port target for the Exynos Galaxy S10 (`beyond1lte`) is being
+prepared in [`devices/beyond1lte/`](devices/beyond1lte/README.md). This is a
+separate hardware platform from `sweet`; no S10 kernel, shim, or boot image is
+implemented yet. The initial target is the base 6.1-inch S10, not the S10+,
+S10e, S10 5G, or Snapdragon variants. See the target notes for the confirmed
+model scope, required hardware discovery, and blockers before attempting any
+device boot.
+
 ## Credits
 
 Built on Apple's open-source releases (xnu, IOHIDFamily, libpthread, hfs), [BearSSL](https://bearssl.org), [blacktop/darwin-xnu-build](https://github.com/blacktop/darwin-xnu-build), [ipsw](https://github.com/blacktop/ipsw), Qualcomm/Xiaomi's published Linux kernel sources for the hardware details, and [OrangeFox Recovery](https://orangefox.download). iOS itself is Apple's and is not distributed here.

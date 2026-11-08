@@ -1,6 +1,27 @@
 # iOS 16 on sweet (Redmi Note 10 Pro, SM7150) - working notes
 
-## Agent handoff / active work (2026-10-15, latest)
+## Active handoff — Galaxy S10 Exynos target (2026-11-08)
+
+The workspace was initialized from the public `dipa-studio/ios-sweet` HEAD
+(`45263be`, shallow clone); no device dumps, generated artifacts, or existing
+local changes were present. User requested an iOS 16.7.16 port for the base
+Galaxy S10, Exynos model, explicitly excluding S10+ and S10e.
+
+Created `devices/beyond1lte/README.md` as the target scope and bring-up plan.
+Target is `beyond1lte` (`SM-G973F`) / `beyond1lteks` (`SM-G973N`), Exynos
+9820. No S10 code or image has been built and no phone was attached or booted.
+The sweet implementation remains specific to Qualcomm SM7150; no sweet memory,
+MMIO, driver, or fastboot handoff values have been copied into an S10 config.
+
+**Next concrete action:** obtain the exact target model/firmware and stock AP
+or boot/recovery image plus DTB/DTBO and partition map. Use those artifacts and
+the Exynos 9820 kernel source to determine Samsung's boot handoff, memory map,
+GIC/timer/PSCI, UFS, framebuffer, display, touch, and key controllers before
+writing a target-specific shim or XNU driver. Keep proprietary/device-specific
+artifacts local and out of git. Do not flash or erase S10 partitions during
+this discovery phase.
+
+## Historical sweet handoff (2026-10-15)
 
 ### >>> UPDATE 2026-10-18 (read first, then the 10-17 handoff below) <<<
 
