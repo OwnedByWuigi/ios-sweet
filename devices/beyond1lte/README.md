@@ -24,7 +24,7 @@ number and live device tree before they are included.
 
 ## Status
 
-**Planning and hardware inventory only. No S10 kernel or boot image exists.**
+**Initial XNU machine-config patch only. No S10 kernel has been built or booted.**
 The working implementation in this repository is specific to the Qualcomm
 SM7150 Redmi Note 10 Pro (`sweet`). Its memory map, GIC addresses, UFS
 controller, framebuffer, touch, keys, power management, and bootloader handoff
@@ -32,6 +32,7 @@ must not be reused for Exynos 9820.
 
 | Area | State | Work required |
 | --- | --- | --- |
+| XNU build target | `xnu/patches/0082-s10-machine-config.patch` adds `MACHINE_CONFIG=S10` | Build against the pinned XNU 8796 source; then add S10 interrupt, CPU-start, memory, and platform support |
 | iOS 16.7.16 root image | Reusable build flow, device identity requires review | Decide whether to retain the iPhone X product identity used by sweet; verify iOS display class and `/product` ADT data |
 | Samsung boot path | Unknown for this project | Establish unlockable bootloader/recovery path and the exact image/container format for the target firmware; document a reversible boot method before writing anything |
 | Shim handoff | Not implemented | Obtain a target stock boot/recovery image and live or stock DTB; adapt entry, DTB, initrd, command-line, and framebuffer discovery to Samsung's handoff |
@@ -47,10 +48,11 @@ must not be reused for Exynos 9820.
    device-specific partitions. Keep dumps, serial numbers, calibration data,
    and proprietary firmware out of git.
 2. Inspect the stock firmware and published
-   [Exynos 9820 kernel source](https://github.com/LineageOS/android_kernel_samsung_exynos9820)
-   to determine the boot chain, image format, board DTB, memory map, and drivers.
-   Treat community device trees as leads; verify addresses and panel/touch
-   details against the actual target's DTB and kernel source.
+   [Exynos 9820 Linux kernel source](https://github.com/LineageOS/android_kernel_samsung_exynos9820)
+   only as a hardware reference for boot-chain facts, board DTB, memory map,
+   and peripheral identification. Do not build, modify, or boot that Linux
+   kernel as the port. Treat community device trees as leads; verify addresses
+   and panel/touch details against the actual target's DTB and XNU requirements.
 3. Add an isolated `beyond1lte` shim/platform configuration. Do not alter
    `tools/mkadt.py` sweet defaults or `shim/build.sh` defaults to make an S10
    image. Derive every MMIO address and reserved range from target artifacts.

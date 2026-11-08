@@ -3,23 +3,30 @@
 ## Active handoff — Galaxy S10 Exynos target (2026-11-08)
 
 The workspace was initialized from the public `dipa-studio/ios-sweet` HEAD
-(`45263be`, shallow clone); no device dumps, generated artifacts, or existing
-local changes were present. User requested an iOS 16.7.16 port for the base
-Galaxy S10, Exynos model, explicitly excluding S10+ and S10e.
+(`45263be`, shallow clone). User clarified that the S10 port must use XNU as
+its kernel and iOS 16.7.16 as its userland. Linux/Android kernel source may be
+consulted only as a hardware reference; no Linux implementation is being used
+as the port kernel. Target scope remains base S10 Exynos (`beyond1lte`,
+`SM-G973F`; `beyond1lteks`, `SM-G973N`), excluding S10+ and S10e.
 
-Created `devices/beyond1lte/README.md` as the target scope and bring-up plan.
-Target is `beyond1lte` (`SM-G973F`) / `beyond1lteks` (`SM-G973N`), Exynos
-9820. No S10 code or image has been built and no phone was attached or booted.
-The sweet implementation remains specific to Qualcomm SM7150; no sweet memory,
-MMIO, driver, or fastboot handoff values have been copied into an S10 config.
+**Milestone:** `xnu/patches/0082-s10-machine-config.patch` adds the initial XNU
+8796 `MACHINE_CONFIG=S10` compile target with 8 CPUs, 2 affinity clusters,
+ARMv8.2 compiler flags, and 16K-page/GICv3 build settings. It applied cleanly
+against XNU `xnu-8796.141.3` commit `1b191cb` after patches 0001–0004. A full
+patch-series apply was attempted and stopped at patch 0031 because its staged
+Apple HFS source (`bsd/sweet_hfs/core/hfs_vfsutils.c`) was absent. No XNU build
+was run (`gh` is unavailable here), and this config is not yet bootable.
+`research/` is ignored; downloaded XNU source is only a local reference/build
+tree. No S10 hardware, firmware, DTB/DTBO, or partition map is present.
 
-**Next concrete action:** obtain the exact target model/firmware and stock AP
-or boot/recovery image plus DTB/DTBO and partition map. Use those artifacts and
-the Exynos 9820 kernel source to determine Samsung's boot handoff, memory map,
-GIC/timer/PSCI, UFS, framebuffer, display, touch, and key controllers before
-writing a target-specific shim or XNU driver. Keep proprietary/device-specific
-artifacts local and out of git. Do not flash or erase S10 partitions during
-this discovery phase.
+**Next concrete action:** make the XNU 8796 build workflow capable of selecting
+`S10`, then build the config and resolve compile issues. In parallel obtain the
+exact handset firmware and DTB/DTBO, and implement the real XNU early platform
+path: Samsung boot handoff, memory/reserved map, interrupt/timer behavior,
+secondary CPU startup, read-only UFS, and framebuffer. Reuse the existing iOS
+16.7.16 IPSW root-image pipeline only after its identity/display integration is
+checked for this device. Keep device dumps and Apple firmware out of git; do
+not flash S10 partitions before boot and recovery are understood.
 
 ## Historical sweet handoff (2026-10-15)
 
