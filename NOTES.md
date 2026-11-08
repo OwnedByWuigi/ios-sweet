@@ -9,24 +9,27 @@ consulted only as a hardware reference; no Linux implementation is being used
 as the port kernel. Target scope remains base S10 Exynos (`beyond1lte`,
 `SM-G973F`; `beyond1lteks`, `SM-G973N`), excluding S10+ and S10e.
 
-**Milestone:** `xnu/patches/0082-s10-machine-config.patch` adds the initial XNU
-8796 `MACHINE_CONFIG=S10` compile target with 8 CPUs, 2 affinity clusters,
-ARMv8.2 compiler flags, and 16K-page/GICv3 build settings. It applied cleanly
-against XNU `xnu-8796.141.3` commit `1b191cb` after patches 0001–0004. A full
-patch-series apply was attempted and stopped at patch 0031 because its staged
-Apple HFS source (`bsd/sweet_hfs/core/hfs_vfsutils.c`) was absent. No XNU build
-was run (`gh` is unavailable here), and this config is not yet bootable.
-`research/` is ignored; downloaded XNU source is only a local reference/build
-tree. No S10 hardware, firmware, DTB/DTBO, or partition map is present.
+**Milestones:** `xnu/patches/0082-s10-machine-config.patch` adds the initial XNU
+8796 `MACHINE_CONFIG=S10` target with 8 CPUs, 2 affinity clusters, ARMv8.2
+compiler flags, and 16K-page/GICv3 settings. `xnu/patches/0083-s10-platform-expert.patch`
+adds an XNU `IODTPlatformExpert` matched on `samsung,exynos9820`; it registers
+CPU and device-tree nubs and reports the hardware target as `beyond1lte`.
+Patch 0082 applied after patches 0001–0004. Patch 0083 applied after patches
+0016 and 0082. These are XNU changes; no Linux kernel code is included.
 
-**Next concrete action:** make the XNU 8796 build workflow capable of selecting
-`S10`, then build the config and resolve compile issues. In parallel obtain the
-exact handset firmware and DTB/DTBO, and implement the real XNU early platform
-path: Samsung boot handoff, memory/reserved map, interrupt/timer behavior,
-secondary CPU startup, read-only UFS, and framebuffer. Reuse the existing iOS
-16.7.16 IPSW root-image pipeline only after its identity/display integration is
-checked for this device. Keep device dumps and Apple firmware out of git; do
-not flash S10 partitions before boot and recovery are understood.
+The local source was XNU `xnu-8796.141.3` commit `1b191cb`. A full patch-series
+apply was attempted and stopped at patch 0031 because its staged Apple HFS
+source (`bsd/sweet_hfs/core/hfs_vfsutils.c`) was absent. No XNU build was run
+(`gh` is unavailable here), and neither patch has been boot-tested. `research/`
+is ignored; downloaded XNU source is a local reference/build tree. No S10
+hardware, firmware, DTB/DTBO, or partition map is present.
+
+**Next concrete action:** obtain the exact handset firmware and DTB/DTBO to
+derive Samsung's boot handoff, memory/reserved map, interrupt/timer behavior,
+and CPU startup before implementing those XNU services. Then add read-only UFS
+and framebuffer support, build XNU with `MACHINE_CONFIG=S10`, and validate the
+iOS 16.7.16 userland identity/display path. Keep device dumps and Apple firmware
+out of git; do not flash S10 partitions before boot and recovery are understood.
 
 ## Historical sweet handoff (2026-10-15)
 

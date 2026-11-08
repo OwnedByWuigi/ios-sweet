@@ -1,0 +1,116 @@
+diff --git a/iokit/Kernel/arm/S10PlatformExpert.cpp b/iokit/Kernel/arm/S10PlatformExpert.cpp
+new file mode 100644
+index 0000000..c5f9ca0
+--- /dev/null
++++ b/iokit/Kernel/arm/S10PlatformExpert.cpp
+@@ -0,0 +1,82 @@
++/*
++ * Device-tree platform expert for the Galaxy S10 Exynos target.
++ * The root ADT must match samsung,exynos9820 and carry the iPhone X product
++ * data required by the iOS 16.7.16 userland.
++ */
++#include <pexpert/arm64/board_config.h>
++
++#if defined(S10)
++#include <IOKit/IOPlatformExpert.h>
++#include <IOKit/IODeviceTreeSupport.h>
++#include <IOKit/IOLib.h>
++
++class S10PlatformExpert : public IODTPlatformExpert {
++	OSDeclareDefaultStructors(S10PlatformExpert);
++
++public:
++	bool start(IOService *provider) APPLE_KEXT_OVERRIDE;
++	void processTopLevel(IORegistryEntry *root) APPLE_KEXT_OVERRIDE;
++	const char *deleteList(void) APPLE_KEXT_OVERRIDE;
++	const char *excludeList(void) APPLE_KEXT_OVERRIDE;
++	bool getTargetName(char *name, int maxLength) APPLE_KEXT_OVERRIDE;
++	bool getProductName(char *name, int maxLength) APPLE_KEXT_OVERRIDE;
++};
++
++OSDefineMetaClassAndStructors(S10PlatformExpert, IODTPlatformExpert);
++
++bool
++S10PlatformExpert::start(IOService *provider)
++{
++	IOLog("S10: starting device-tree platform expert\n");
++	if (!IODTPlatformExpert::start(provider)) {
++		return false;
++	}
++	registerService();
++	IOLog("S10: platform expert registered\n");
++	return true;
++}
++
++const char *
++S10PlatformExpert::deleteList(void)
++{
++	return "()";
++}
++
++const char *
++S10PlatformExpert::excludeList(void)
++{
++	return "('chosen', 'defaults', 'cpus', 'options')";
++}
++
++void
++S10PlatformExpert::processTopLevel(IORegistryEntry *root)
++{
++	/* No Apple NVRAM/options node is assumed on this board. */
++	IORegistryEntry *cpus = root->childFromPath("cpus", gIODTPlane);
++	if (cpus != NULL) {
++		createNubs(this, IODTFindMatchingEntries(cpus, kIODTExclusive, NULL));
++		cpus->release();
++	}
++	createNubs(this, IODTFindMatchingEntries(root, kIODTExclusive, excludeList()));
++}
++
++bool
++S10PlatformExpert::getTargetName(char *name, int maxLength)
++{
++	if (name == NULL || maxLength <= 0) {
++		return false;
++	}
++	strlcpy(name, "beyond1lte", (size_t)maxLength);
++	return true;
++}
++
++bool
++S10PlatformExpert::getProductName(char *name, int maxLength)
++{
++	if (name == NULL || maxLength <= 0) {
++		return false;
++	}
++	strlcpy(name, "Galaxy S10", (size_t)maxLength);
++	return true;
++}
++#endif /* S10 */
+diff --git a/iokit/KernelConfigTables.cpp b/iokit/KernelConfigTables.cpp
+index e58bad1..83adaa6 100644
+--- a/iokit/KernelConfigTables.cpp
++++ b/iokit/KernelConfigTables.cpp
+@@ -34,6 +34,14 @@
+ 
+ const char * gIOKernelConfigTables =
+     "("
++#if defined(ARM64_BOARD_CONFIG_S10)
++    "   {"
++    "     'IOClass'         = S10PlatformExpert;"
++    "     'IOProviderClass' = IOPlatformExpertDevice;"
++    "     'IONameMatch'     = 'samsung,exynos9820';"
++    "     'IOProbeScore'    = 10000:32;"
++    "   },"
++#endif
+ #if defined(ARM64_BOARD_CONFIG_SWEET)
+     "   {"
+     "     'IOClass'         = SweetPlatformExpert;"
+diff --git a/iokit/conf/files.arm64 b/iokit/conf/files.arm64
+index 90cff06..aac1a7c 100644
+--- a/iokit/conf/files.arm64
++++ b/iokit/conf/files.arm64
+@@ -8,3 +8,4 @@ iokit/Kernel/arm/AppleARMSMP.cpp    					optional iokitcpp
+ 
+ # SWEET device-tree platform (empty translation unit on other boards)
+ iokit/Kernel/arm/SweetPlatformExpert.cpp                         optional iokitcpp
++iokit/Kernel/arm/S10PlatformExpert.cpp                           optional iokitcpp
