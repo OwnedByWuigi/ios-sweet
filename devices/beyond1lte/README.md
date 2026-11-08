@@ -24,8 +24,9 @@ number and live device tree before they are included.
 
 ## Status
 
-**Initial XNU machine-config, device-tree platform-expert, and single-core CPU
-bring-up patches only. No S10 kernel has been built or booted.**
+**Initial XNU machine-config, device-tree platform-expert, boot-CPU, and GICv3
+timer/SGI patches only. The S10 Group 1 IRQ route is an unverified assumption;
+no S10 kernel has been built or booted.**
 The working implementation in this repository is specific to the Qualcomm
 SM7150 Redmi Note 10 Pro (`sweet`). Its memory map, GIC addresses, UFS
 controller, framebuffer, touch, keys, power management, and bootloader handoff
@@ -36,10 +37,11 @@ must not be reused for Exynos 9820.
 | XNU build target | `xnu/patches/0082-s10-machine-config.patch` adds `MACHINE_CONFIG=S10` | Build against the pinned XNU 8796 source; then add S10 interrupt and memory support |
 | XNU platform expert | `xnu/patches/0083-s10-platform-expert.patch` matches the Exynos 9820 root and publishes DT CPU/device nubs | Confirm the root compatible and ADT CPU shape from the target firmware |
 | XNU boot CPU | `xnu/patches/0084-s10-single-cpu-bringup.patch` registers the boot processor when the ADT exposes only one CPU | Verify the XNU CPU topology fields against an S10-derived ADT; add PSCI secondary startup and interrupt signaling |
+| XNU GIC/timer | `xnu/patches/0085-s10-gicv3-timer-ipi.patch` configures GICv3 non-secure Group 1, virtual timer PPI 27, and SGI1 delivery | Verify the GIC security/group routing and timer PPI against stock S10 firmware before boot; confirm the GIC ranges in the ADT |
 | iOS 16.7.16 root image | Reusable build flow, device identity requires review | Decide whether to retain the iPhone X product identity used by sweet; verify iOS display class and `/product` ADT data |
 | Samsung boot path | Unknown for this project | Establish unlockable bootloader/recovery path and the exact image/container format for the target firmware; document a reversible boot method before writing anything |
 | Shim handoff | Not implemented | Obtain a target stock boot/recovery image and live or stock DTB; adapt entry, DTB, initrd, command-line, and framebuffer discovery to Samsung's handoff |
-| Exynos XNU platform | Not implemented | Add S5E9820 machine support and establish RAM/reserved regions, exception levels, GIC/timer, PSCI, cache coherency, and secondary CPU startup from the live DTB and published kernel sources |
+| Exynos XNU platform | Partial: machine config, platform expert, boot CPU, and assumed GICv3 path | Establish RAM/reserved regions, exception levels, verified GIC/timer behavior, PSCI, cache coherency, and secondary CPU startup from the live DTB |
 | Storage/root | Not implemented | Identify Exynos UFS controller and partition layout; add a read-only probe first, then an independent root device driver |
 | Display/input | Not implemented | Identify panel/DSI mode, boot framebuffer handoff, touch controller/bus, key path, regulator requirements; bring up framebuffer before interactive HID |
 | iOS services | Not evaluated | Add only after the kernel can reliably boot and mount a test root; hardware-specific IOKit services will be needed |

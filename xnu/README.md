@@ -19,10 +19,12 @@ adds an XNU `IODTPlatformExpert` for the Exynos root compatible and publishes
 the device-tree CPU and device nubs. `0084-s10-single-cpu-bringup.patch` adds
 an XNU `IOCPU` service for a one-CPU ADT, which is the intended first boot
 configuration. Secondary CPU startup and interprocessor signaling remain
-unimplemented. The port does not import or build the Linux/Android kernel;
-Linux device trees and drivers are hardware references only. Samsung's boot
-protocol, interrupt routing, memory discovery, storage, and display remain
-unimplemented, and no S10 kernel has been booted.
+unimplemented. `0085-s10-gicv3-timer-ipi.patch` adds a GICv3 Group 1 IRQ path
+for virtual timer PPI 27 and SGI1. That routing is an initial hardware
+assumption and has not been verified against S10 firmware. The port does not
+import or build the Linux/Android kernel; Linux device trees and drivers are
+hardware references only. Samsung's boot protocol, memory discovery, storage,
+and display remain unimplemented, and no S10 kernel has been booted.
 
 Once the patch can be built in the pinned XNU 8796 workflow, use the `S10`
 machine config for compile diagnostics. A successful build will not by itself
