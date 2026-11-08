@@ -14,22 +14,27 @@ as the port kernel. Target scope remains base S10 Exynos (`beyond1lte`,
 compiler flags, and 16K-page/GICv3 settings. `xnu/patches/0083-s10-platform-expert.patch`
 adds an XNU `IODTPlatformExpert` matched on `samsung,exynos9820`; it registers
 CPU and device-tree nubs and reports the hardware target as `beyond1lte`.
-Patch 0082 applied after patches 0001–0004. Patch 0083 applied after patches
-0016 and 0082. These are XNU changes; no Linux kernel code is included.
+`xnu/patches/0084-s10-single-cpu-bringup.patch` adds an XNU `IOCPU` service
+that registers only the boot CPU when the ADT contains one CPU. Secondary CPU
+startup and IPI signaling deliberately remain unsupported until the S10 PSCI
+conduit and GIC routing are known. Patch 0082 applied after patches 0001–0004;
+patch 0083 after 0016 and 0082; patch 0084 after 0083. These are XNU changes;
+no Linux kernel code is included.
 
 The local source was XNU `xnu-8796.141.3` commit `1b191cb`. A full patch-series
 apply was attempted and stopped at patch 0031 because its staged Apple HFS
 source (`bsd/sweet_hfs/core/hfs_vfsutils.c`) was absent. No XNU build was run
-(`gh` is unavailable here), and neither patch has been boot-tested. `research/`
-is ignored; downloaded XNU source is a local reference/build tree. No S10
-hardware, firmware, DTB/DTBO, or partition map is present.
+(`gh` is unavailable here), and none of patches 0082–0084 has been boot-tested.
+`research/` is ignored; downloaded XNU source is a local reference/build tree.
+No S10 hardware, firmware, DTB/DTBO, or partition map is present.
 
 **Next concrete action:** obtain the exact handset firmware and DTB/DTBO to
 derive Samsung's boot handoff, memory/reserved map, interrupt/timer behavior,
-and CPU startup before implementing those XNU services. Then add read-only UFS
-and framebuffer support, build XNU with `MACHINE_CONFIG=S10`, and validate the
-iOS 16.7.16 userland identity/display path. Keep device dumps and Apple firmware
-out of git; do not flash S10 partitions before boot and recovery are understood.
+and PSCI conduit. Build XNU with `MACHINE_CONFIG=S10` and a one-CPU ADT first;
+then implement and verify interrupt/timer routing before enabling secondary
+cores. Add read-only UFS and framebuffer support, then validate the iOS 16.7.16
+identity/display path. Keep device dumps and Apple firmware out of git; do not
+flash S10 partitions before boot and recovery are understood.
 
 ## Historical sweet handoff (2026-10-15)
 

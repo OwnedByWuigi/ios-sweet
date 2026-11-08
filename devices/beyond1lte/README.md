@@ -24,8 +24,8 @@ number and live device tree before they are included.
 
 ## Status
 
-**Initial XNU machine-config and device-tree platform-expert patches only. No
-S10 kernel has been built or booted.**
+**Initial XNU machine-config, device-tree platform-expert, and single-core CPU
+bring-up patches only. No S10 kernel has been built or booted.**
 The working implementation in this repository is specific to the Qualcomm
 SM7150 Redmi Note 10 Pro (`sweet`). Its memory map, GIC addresses, UFS
 controller, framebuffer, touch, keys, power management, and bootloader handoff
@@ -33,8 +33,9 @@ must not be reused for Exynos 9820.
 
 | Area | State | Work required |
 | --- | --- | --- |
-| XNU build target | `xnu/patches/0082-s10-machine-config.patch` adds `MACHINE_CONFIG=S10` | Build against the pinned XNU 8796 source; then add S10 interrupt, CPU-start, memory, and platform support |
-| XNU platform expert | `xnu/patches/0083-s10-platform-expert.patch` matches the Exynos 9820 root and publishes DT CPU/device nubs | Confirm the root compatible and ADT shape from the target firmware; implement the S10 CPU-start and interrupt services |
+| XNU build target | `xnu/patches/0082-s10-machine-config.patch` adds `MACHINE_CONFIG=S10` | Build against the pinned XNU 8796 source; then add S10 interrupt and memory support |
+| XNU platform expert | `xnu/patches/0083-s10-platform-expert.patch` matches the Exynos 9820 root and publishes DT CPU/device nubs | Confirm the root compatible and ADT CPU shape from the target firmware |
+| XNU boot CPU | `xnu/patches/0084-s10-single-cpu-bringup.patch` registers the boot processor when the ADT exposes only one CPU | Verify the XNU CPU topology fields against an S10-derived ADT; add PSCI secondary startup and interrupt signaling |
 | iOS 16.7.16 root image | Reusable build flow, device identity requires review | Decide whether to retain the iPhone X product identity used by sweet; verify iOS display class and `/product` ADT data |
 | Samsung boot path | Unknown for this project | Establish unlockable bootloader/recovery path and the exact image/container format for the target firmware; document a reversible boot method before writing anything |
 | Shim handoff | Not implemented | Obtain a target stock boot/recovery image and live or stock DTB; adapt entry, DTB, initrd, command-line, and framebuffer discovery to Samsung's handoff |

@@ -16,11 +16,13 @@ Fetch the latest build: `gh run download -R dipa-studio/ios-sweet -n xnu-kernel 
 `xnu/patches/0082-s10-machine-config.patch` adds an isolated XNU `MACHINE_CONFIG=S10`
 compile target for the Exynos 9820 CPU complex. `0083-s10-platform-expert.patch`
 adds an XNU `IODTPlatformExpert` for the Exynos root compatible and publishes
-the device-tree CPU and device nubs. The port does not import or build the
-Linux/Android kernel; Linux device trees and drivers are hardware references
-only. Samsung's boot protocol, interrupt routing, memory discovery, CPU-start
-service, storage, and display remain unimplemented, and no S10 kernel has been
-booted.
+the device-tree CPU and device nubs. `0084-s10-single-cpu-bringup.patch` adds
+an XNU `IOCPU` service for a one-CPU ADT, which is the intended first boot
+configuration. Secondary CPU startup and interprocessor signaling remain
+unimplemented. The port does not import or build the Linux/Android kernel;
+Linux device trees and drivers are hardware references only. Samsung's boot
+protocol, interrupt routing, memory discovery, storage, and display remain
+unimplemented, and no S10 kernel has been booted.
 
 Once the patch can be built in the pinned XNU 8796 workflow, use the `S10`
 machine config for compile diagnostics. A successful build will not by itself
