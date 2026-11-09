@@ -35,3 +35,7 @@ Once the patch can be built in the pinned XNU 8796 workflow, use the `S10`
 machine config for compile diagnostics. A successful build will not by itself
 make the kernel safe to boot; board handoff and the early platform drivers must
 be completed and checked against a real S10 firmware/device tree first.
+
+The workflow now targets `macos-15` because GitHub retired the macOS 14 runner
+images in November 2026. Patch `0086-xcode16-iig-compat.patch` backports the
+kernel-only `IORPC.kernelContent` member expected by Xcode 16's IIG output.
