@@ -1,4 +1,5 @@
 name: xnu
+run-name: XNU ${{ inputs.machine_config || 'S10' }} ${{ inputs.kernel_config || 'DEVELOPMENT' }}
 
 on:
   workflow_dispatch:
@@ -11,12 +12,12 @@ on:
         default: DEVELOPMENT
       machine_config:
         description: xnu MACHINE_CONFIG
-        default: SWEET
+        default: S10
       keep_going:
         description: make -k (collect all compile errors in one run)
         default: "true"
   push:
-    # Push builds validate the default SWEET config; select S10 via workflow_dispatch.
+    # Push builds target S10; select SWEET explicitly via workflow_dispatch.
     branches: [main]
     paths:
       - "xnu/patches/**"
@@ -31,7 +32,7 @@ env:
   DXB_SHA: 663906528d1cd5ea8fde7de6f16de73db9511549
   MACOS_VERSION: ${{ inputs.macos_version || '13.5' }}
   KERNEL_CONFIG: ${{ inputs.kernel_config || 'DEVELOPMENT' }}
-  MACHINE_CONFIG: ${{ inputs.machine_config || 'SWEET' }}
+  MACHINE_CONFIG: ${{ inputs.machine_config || 'S10' }}
 
 jobs:
   build:
@@ -49,7 +50,7 @@ jobs:
           git -C dxb checkout -q FETCH_HEAD
           # 12.5-14.3 use the top-level patches dir; ours go next to blacktop's
           cp xnu/patches/*.patch xnu/patches/*.sh dxb/patches/
-          # libfirehose_kernel is built arm64e-only; the SWEET kernel is plain arm64
+          # libfirehose_kernel is arm64e-only; SWEET and S10 kernels are plain arm64
           sed -i '' 's/ARCHS="x86_64 arm64e" VALID_ARCHS="x86_64 arm64e"/ARCHS="x86_64 arm64e arm64" VALID_ARCHS="x86_64 arm64e arm64"/' dxb/build.sh
           grep -c 'VALID_ARCHS="x86_64 arm64e arm64"' dxb/build.sh
           ls dxb/patches

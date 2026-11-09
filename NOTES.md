@@ -63,20 +63,22 @@ ported; this is not yet a usable iOS system. Confirm any destructive step with
 the user before running it. Keep firmware, device dumps, serials, and Apple
 artifacts out of git.
 
-**Next concrete action:** dispatch the XNU GitHub Actions workflow on `main`
-with `macos_version=13.5`, `kernel_config=DEVELOPMENT`, and
-`machine_config=S10`. Confirm the resulting artifact is named
-`kernel.development.s10`; inspect the buildtree and fix any S10 errors before
-attempting to package it. Then extract the actual handset's live FDT and derive
-a safe ADT/RAM window; do not use the overlay-20 sample conversion as a boot
-input.
+**Next concrete action:** push the workflow change that makes both push builds
+and the manual default use `machine_config=S10`. Confirm the resulting
+artifact is named `kernel.development.s10`; inspect the buildtree and fix any
+S10 errors before attempting to package it. Then extract the actual handset's
+live FDT and derive a safe ADT/RAM window; do not use the overlay-20 sample
+conversion as a boot input.
 
 **Actions runner update (2026-11-09):** the user's failed run reported
 `macos-14-arm64-us-default` unsupported. GitHub retired macOS 14 images on
 2026-11-02. Workflow changed to `macos-15`, whose hosted image includes Xcode
 16. Patch 0086 adds the `IORPC.kernelContent` field expected by that IIG to
-both XNU IORPC headers. It applies to the local 8796.141.3 tree; CI has not
-rerun yet. Fix committed as `4f44a0d` (`ci: move XNU build to supported macOS runner`).
+both XNU IORPC headers. It applies to the local 8796.141.3 tree. Run
+`42540209218` succeeded after the runner migration, but built SWEET. The
+workflow now defaults to S10 for pushes and manual runs; Sweet remains
+selectable via `machine_config=SWEET`. The runner migration is in commit
+`4f44a0d`; the S10 default change is being committed now.
 
 ## Historical sweet handoff (2026-10-15)
 
