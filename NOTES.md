@@ -78,7 +78,9 @@ both XNU IORPC headers. It applies to the local 8796.141.3 tree. Run
 `42540209218` succeeded after the runner migration, but built SWEET. The
 workflow now defaults to S10 for pushes and manual runs; Sweet remains
 selectable via `machine_config=SWEET`. The runner migration is in commit
-`4f44a0d`; the S10 default change is being committed now.
+`4f44a0d`; the S10 default change is in `28f7521`. Attempted to push
+`main`, but GitHub rejected the request because this workspace has no HTTPS
+credentials. The S10 workflow has not run yet.
 
 ## Historical sweet handoff (2026-10-15)
 
