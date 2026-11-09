@@ -21,7 +21,7 @@ GICC 0x10102000 (4 KiB each), UFS 0x13d60000, UFS PHY 0x13d64000, DSI
 0x19080000, and three RAM banks totalling 6 GiB. Base reserved-memory and RAM
 are incomplete versus the final ABL tree.
 
-**Completed in this worktree (not yet committed):**
+**Completed and committed:** commit `dfc3a46` (`s10: add Samsung shim and boot handoff tools`). It includes:
 - XNU patches 0082–0084 add the isolated plain-arm64 S10 machine config,
   Exynos platform expert, and one-CPU bring-up.
 - Patch 0085 is corrected/renamed to `0085-s10-gicv2-timer.patch`, replacing
@@ -56,9 +56,10 @@ ported; this is not yet a usable iOS system. Confirm any destructive step with
 the user before running it. Keep firmware, device dumps, serials, and Apple
 artifacts out of git.
 
-**Next concrete action:** finish local review/build of the shim and converter,
-update this handoff, commit source/docs only, then run XNU GitHub Actions once
-GitHub CLI/authentication is available (or when a push/CI trigger is authorized).
+**Next concrete action:** run the XNU GitHub Actions workflow with
+`machine_config=S10` once GitHub CLI/authentication is available. Fix any build
+errors, then package a real XNU kernel and test boot only through the verified
+reversible Samsung boot path.
 
 ## Historical sweet handoff (2026-10-15)
 
