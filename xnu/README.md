@@ -14,17 +14,22 @@ Fetch the latest build: `gh run download -R dipa-studio/ios-sweet -n xnu-kernel 
 ## Galaxy S10 Exynos (`S10`)
 
 `xnu/patches/0082-s10-machine-config.patch` adds an isolated XNU `MACHINE_CONFIG=S10`
-compile target for the Exynos 9820 CPU complex. `0083-s10-platform-expert.patch`
-adds an XNU `IODTPlatformExpert` for the Exynos root compatible and publishes
-the device-tree CPU and device nubs. `0084-s10-single-cpu-bringup.patch` adds
-an XNU `IOCPU` service for a one-CPU ADT, which is the intended first boot
-configuration. Secondary CPU startup and interprocessor signaling remain
-unimplemented. `0085-s10-gicv3-timer-ipi.patch` adds a GICv3 Group 1 IRQ path
-for virtual timer PPI 27 and SGI1. That routing is an initial hardware
-assumption and has not been verified against S10 firmware. The port does not
-import or build the Linux/Android kernel; Linux device trees and drivers are
-hardware references only. Samsung's boot protocol, memory discovery, storage,
-and display remain unimplemented, and no S10 kernel has been booted.
+compile target for the Exynos 9820 CPU complex. Stock SM-G973F AP DT evidence
+shows eight CPU nodes across two MPIDR Aff1 clusters and three compatible
+core types. `0083-s10-platform-expert.patch`
+adds an XNU `IODTPlatformExpert` for `samsung,exynos9820` and publishes the
+device-tree CPU/device nubs. `0084-s10-single-cpu-bringup.patch` registers one
+boot CPU from the ADT; secondary CPU startup and IPIs remain unimplemented.
+`0085-s10-gicv2-timer.patch` adds a first memory-mapped GICD/GICC IRQ path
+using the stock DT register regions and virtual timer PPI 27. The AP DT uses
+the `arm,cortex-a15-gic` / `arm,cortex-a9-gic` binding; non-secure EL1 access
+and timer delivery still need hardware verification. The port does not import
+or build the Linux/Android kernel; Linux device trees and drivers are hardware
+references only. A separate S10 arm64 shim now builds locally, and
+`tools/mkadt-s10.py` converts a merged FDT to a minimal one-CPU ADT. Neither
+has been tested on-device, and the sample DTB is pre-bootloader rather than
+the live tree. Storage, display, input, the final memory map, and a bootable
+XNU build remain unfinished. No S10 kernel has been built or booted.
 
 Once the patch can be built in the pinned XNU 8796 workflow, use the `S10`
 machine config for compile diagnostics. A successful build will not by itself

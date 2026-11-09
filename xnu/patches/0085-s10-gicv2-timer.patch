@@ -1,0 +1,146 @@
+diff --git a/osfmk/arm64/sleh.c b/osfmk/arm64/sleh.c
+index 9888608..cb0f59d 100644
+--- a/osfmk/arm64/sleh.c
++++ b/osfmk/arm64/sleh.c
+@@ -56,6 +56,11 @@
+ #include <pexpert/arm64/apple_arm64_regs.h>
+ #include <pexpert/arm64/board_config.h>
+ 
++#if defined(S10)
++extern uint32_t s10_gic_ack_irq(void);
++extern void s10_gic_eoi_irq(uint32_t iar);
++#endif
++
+ #include <vm/vm_page.h>
+ #include <vm/pmap.h>
+ #include <vm/vm_fault.h>
+@@ -1891,6 +1896,37 @@ sleh_irq(arm_saved_state_t *state)
+ 		__builtin_arm_wsr64("ICC_EOIR1_EL1", iar);
+ 	}
+ 	__builtin_arm_isb(ISB_SY);
++#elif defined(S10)
++	/* S10 stock DT uses the GICD/GICC memory-mapped CPU interface. */
++	uint32_t iar = s10_gic_ack_irq();
++	uint32_t intid = iar & 0x3FF;
++
++	if (intid >= 1020 && intid <= 1023) {
++		return; /* spurious */
++	}
++	if (intid == S10_VTIMER_INTID) {
++		sleh_interrupt_handler_prologue(state, DBG_INTR_TYPE_TIMER);
++		cdp->cpu_decrementer = -1; /* Large */
++		INTERRUPT_MASKED_DEBUG_START(rtclock_intr, DBG_INTR_TYPE_TIMER);
++		rtclock_intr(TRUE);
++		INTERRUPT_MASKED_DEBUG_END();
++		s10_gic_eoi_irq(iar);
++	} else if (intid < 16) {
++		sleh_interrupt_handler_prologue(state, DBG_INTR_TYPE_IPI);
++		s10_gic_eoi_irq(iar);
++		__builtin_arm_isb(ISB_SY);
++		cpu_signal_handler();
++	} else {
++		sleh_interrupt_handler_prologue(state, DBG_INTR_TYPE_OTHER);
++		if (cdp->interrupt_handler) {
++			cdp->interrupt_handler(cdp->interrupt_target,
++			    cdp->interrupt_refCon,
++			    cdp->interrupt_nub,
++			    intid);
++		}
++		s10_gic_eoi_irq(iar);
++	}
++	__builtin_arm_dsb(DSB_SY);
+ #else
+ 	sleh_interrupt_handler_prologue(state, DBG_INTR_TYPE_OTHER);
+ 
+diff --git a/pexpert/arm/pe_fiq.c b/pexpert/arm/pe_fiq.c
+index 4ec6989..81966ec 100644
+--- a/pexpert/arm/pe_fiq.c
++++ b/pexpert/arm/pe_fiq.c
+@@ -199,6 +199,87 @@ pe_init_fiq()
+ 	__builtin_arm_isb(ISB_SY);
+ #endif /* SWEET */
+ }
++#elif defined(S10_GIC_V2_COMPAT)
++/*
++ * The SM-G973F AP DT describes a four-region GICv2-compatible interface.
++ * Its first two regions are GICD and GICC. XNU runs at non-secure EL1, so
++ * service interrupts through the memory-mapped CPU interface.
++ */
++#define S10_GICD_CTLR       0x0000
++#define S10_GICD_IGROUPR0   0x0080
++#define S10_GICD_ISENABLER0 0x0100
++#define S10_GICD_IPRIORITYR 0x0400
++#define S10_GICC_CTLR       0x0000
++#define S10_GICC_PMR        0x0004
++#define S10_GICC_BPR        0x0008
++#define S10_GICC_IAR        0x000c
++#define S10_GICC_EOIR       0x0010
++#define S10_GICD_ENABLE_G1  (1U << 0)
++#define S10_GICC_ENABLE_G1  (1U << 0)
++
++static vm_offset_t s10_gicd_base;
++static vm_offset_t s10_gicc_base;
++
++static uint32_t
++s10_gicd_read32(vm_offset_t offset)
++{
++	return *((volatile uint32_t *)(s10_gicd_base + offset));
++}
++
++static void
++s10_gicd_write32(vm_offset_t offset, uint32_t value)
++{
++	*((volatile uint32_t *)(s10_gicd_base + offset)) = value;
++}
++
++static void
++s10_gicd_write8(vm_offset_t offset, uint8_t value)
++{
++	*((volatile uint8_t *)(s10_gicd_base + offset)) = value;
++}
++
++static void
++s10_gicc_write32(vm_offset_t offset, uint32_t value)
++{
++	*((volatile uint32_t *)(s10_gicc_base + offset)) = value;
++}
++
++uint32_t
++s10_gic_ack_irq(void)
++{
++	return *((volatile uint32_t *)(s10_gicc_base + S10_GICC_IAR));
++}
++
++void
++s10_gic_eoi_irq(uint32_t iar)
++{
++	*((volatile uint32_t *)(s10_gicc_base + S10_GICC_EOIR)) = iar;
++}
++
++void
++pe_init_fiq(void)
++{
++	if (!s10_gicd_base) {
++		s10_gicd_base = ml_io_map(S10_GICD_PHYS, S10_GIC_REGION_SIZE);
++		s10_gicc_base = ml_io_map(S10_GICC_PHYS, S10_GIC_REGION_SIZE);
++		if (!s10_gicd_base || !s10_gicc_base) {
++			panic("%s: cannot map Exynos GICD/GICC", __func__);
++		}
++	}
++
++	/* In the non-secure view, Group 1 is the interrupt group for XNU. */
++	s10_gicd_write32(S10_GICD_IGROUPR0, 0xFFFFFFFF);
++	s10_gicd_write8(S10_GICD_IPRIORITYR + S10_VTIMER_INTID, 0x80);
++	s10_gicd_write32(S10_GICD_ISENABLER0, 1U << S10_VTIMER_INTID);
++	s10_gicd_write32(S10_GICD_CTLR,
++	    s10_gicd_read32(S10_GICD_CTLR) | S10_GICD_ENABLE_G1);
++
++	s10_gicc_write32(S10_GICC_PMR, 0xFF);
++	s10_gicc_write32(S10_GICC_BPR, 0);
++	s10_gicc_write32(S10_GICC_CTLR, S10_GICC_ENABLE_G1);
++	__builtin_arm_dsb(DSB_SY);
++	__builtin_arm_isb(ISB_SY);
++}
+ #else
+ void
+ pe_init_fiq()

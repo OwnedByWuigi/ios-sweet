@@ -68,11 +68,11 @@ new file mode 100644
 index 0000000..3d504c3
 --- /dev/null
 +++ b/pexpert/pexpert/arm64/S10.h
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,31 @@
 +/*
 + * Initial XNU machine configuration for the Galaxy S10 Exynos target.
-+ * This is a compile target only; it does not yet encode Samsung's boot
-+ * handoff, interrupt routing, memory carve-outs, or board peripherals.
++ * Interrupt routing is defined by the later S10 GIC patch. Samsung's boot
++ * handoff, memory carve-outs, and board peripherals remain separate work.
 + */
 +#ifndef _PEXPERT_ARM64_S10_H
 +#define _PEXPERT_ARM64_S10_H
@@ -91,9 +91,13 @@ index 0000000..3d504c3
 +#define __ARM_PAN_AVAILABLE__     1
 +#define __ARM_16K_PG__            1
 +
-+#define HAS_GIC_V3                1
++#define HAS_CLUSTER               1
++#define S10_GIC_V2_COMPAT         1
++#define S10_VTIMER_INTID          27 /* ARM virtual timer: PPI 11 + 16 */
++#define S10_GICD_PHYS             0x10101000
++#define S10_GICC_PHYS             0x10102000
++#define S10_GIC_REGION_SIZE       0x1000
 +#define GIC_SPURIOUS_IRQ          1023
-+#define GICR_PE_SIZE              0x20000
 +
 +#endif /* _PEXPERT_ARM64_S10_H */
 diff --git a/pexpert/pexpert/arm64/board_config.h b/pexpert/pexpert/arm64/board_config.h

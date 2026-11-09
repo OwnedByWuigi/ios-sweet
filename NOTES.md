@@ -1,42 +1,64 @@
 # iOS 16 on sweet (Redmi Note 10 Pro, SM7150) - working notes
 
-## Active handoff — Galaxy S10 Exynos target (2026-11-08)
+## Active handoff — Galaxy S10 Exynos target (2026-11-09)
 
-The workspace was initialized from the public `dipa-studio/ios-sweet` HEAD
-(`45263be`, shallow clone). User clarified that the S10 port must use XNU as
-its kernel and iOS 16.7.16 as its userland. Linux/Android kernel source may be
-consulted only as a hardware reference; no Linux implementation is being used
-as the port kernel. Target scope remains base S10 Exynos (`beyond1lte`,
-`SM-G973F`; `beyond1lteks`, `SM-G973N`), excluding S10+ and S10e.
+The user's goal is iOS 16.7.16 on base Galaxy S10 Exynos SM-G973F (not S10+
+or S10e), using XNU. Linux/Android sources are hardware references only. User
+provided AP/BL/CP/CSC firmware; firmware archives remain untracked. Do not
+flash. The user authorized use of internal UFS for iOS and deletion of Android,
+but destructive steps still require explicit confirmation; keep bootloaders,
+recovery, modem, persist and backups intact.
 
-**Milestones:** `xnu/patches/0082-s10-machine-config.patch` adds the initial XNU
-8796 `MACHINE_CONFIG=S10` target with 8 CPUs, 2 affinity clusters, ARMv8.2
-compiler flags, and 16K-page/GICv3 settings. `xnu/patches/0083-s10-platform-expert.patch`
-adds an XNU `IODTPlatformExpert` matched on `samsung,exynos9820`; it registers
-CPU and device-tree nubs and reports the hardware target as `beyond1lte`.
-`xnu/patches/0084-s10-single-cpu-bringup.patch` adds an XNU `IOCPU` service
-that registers only the boot CPU when the ADT contains one CPU. Secondary CPU
-startup remains unsupported until the S10 PSCI conduit and topology are known.
-`xnu/patches/0085-s10-gicv3-timer-ipi.patch` adds XNU Group 1 IRQ handling,
-virtual timer PPI 27, and SGI1 self-IPI support. The Group 1 route is an
-unverified assumption for S10. Patch 0082 applied after 0001–0004; patch 0083
-after 0016 and 0082; patch 0084 after 0083; patch 0085 after 0084. These are
-XNU changes; no Linux kernel code is included.
+**Firmware observations:** AP/BL identify G973FXXSGHWC1; CP is G973FXXSGHWB3;
+CSC is G973FOXMGHWA3, so this is a mixed-build set. Extracted files/reports are
+in ignored `research/s10-firmware/`. AP stock `boot.img` is Android boot v1,
+kernel at 0x10008000, tags at 0x10000100, 2 KiB pages, no ramdisk or embedded
+DTB. Separate `dt.img`/`dtbo.img`; merged overlay 20 is analysis only, not
+known to be selected by this phone. Base DT lists eight MPIDRs (`0..5`,
+`0x100..0x101`) across two Aff1 clusters / three core types; PSCI uses SMC;
+virtual timer PPI 11 = INTID 27 at 26 MHz. It describes GICD 0x10101000 and
+GICC 0x10102000 (4 KiB each), UFS 0x13d60000, UFS PHY 0x13d64000, DSI
+0x19080000, and three RAM banks totalling 6 GiB. Base reserved-memory and RAM
+are incomplete versus the final ABL tree.
 
-The local source was XNU `xnu-8796.141.3` commit `1b191cb`. A full patch-series
-apply was attempted and stopped at patch 0031 because its staged Apple HFS
-source (`bsd/sweet_hfs/core/hfs_vfsutils.c`) was absent. No XNU build was run
-(`gh` is unavailable here), and none of patches 0082–0085 has been boot-tested.
-`research/` is ignored; downloaded XNU source is a local reference/build tree.
-No S10 hardware, firmware, DTB/DTBO, or partition map is present.
+**Completed in this worktree (not yet committed):**
+- XNU patches 0082–0084 add the isolated plain-arm64 S10 machine config,
+  Exynos platform expert, and one-CPU bring-up.
+- Patch 0085 is corrected/renamed to `0085-s10-gicv2-timer.patch`, replacing
+  the unsupported GICv3 system-register assumption with an initial GICD/GICC
+  MMIO interrupt/timer path. It remains unbuilt and hardware-unverified.
+- Patch chain through 0085 was applied in the local ignored XNU 8796.141.3
+  worktree. Full XNU CI has not run: `gh` is unavailable and no GitHub CLI
+  credentials are configured. Source is in ignored `research/xnu-8796.141.3/`.
+- New separate `shim/s10/` arm64 Image entry/build path handles EL2->EL1,
+  accepts ABL's FDT in x0 and uses the shared payload loader. The shared
+  loader now bounds-checks the payload and emits zero framebuffer boot_args
+  for S10. Local cross-build succeeded with Debian Clang 19, LLVM LLD 19 and
+  llvm-objcopy: `shim/s10/out/Image` = 77,824 bytes, Linux Image `image_size`
+  0x13000. This establishes compilation only, not bootloader acceptance.
+- `tools/mkadt-s10.py` converts a merged FDT to a minimal one-CPU Apple DT and
+  requires an explicit selected RAM window. Parser/serializer exercise on
+  merged overlay20 produced `/tmp/s10-rev20.adt` (699,460 bytes) for
+  0x88b000000+0x75000000; this was a converter check only, not a validated
+  handset RAM choice. `tools/mks10boot.py` packages the shim and XNU payload
+  into Android boot v1 matching the stock header; no payload/kernel exists yet.
+- `devices/beyond1lte/README.md` and `xnu/README.md` describe current evidence
+  and gaps. `git diff --check` has only patch-file whitespace diagnostics from
+  normal unified-diff context lines; review before commit.
 
-**Next concrete action:** obtain the exact handset firmware and DTB/DTBO to
-verify Samsung's boot handoff, memory/reserved map, GIC security groups, timer
-PPI, and PSCI conduit. Build XNU with `MACHINE_CONFIG=S10` and a one-CPU ADT;
-then test the Group 1 timer/SGI route before enabling secondary cores. Add
-read-only UFS and framebuffer support, then validate the iOS 16.7.16
-identity/display path. Keep device dumps and Apple firmware out of git; do not
-flash S10 partitions before boot and recovery are understood.
+**Still required for a boot:** obtain an actual live ABL FDT (including chosen,
+initrd, selected overlay and complete reservations), verify shim load/EL on
+hardware, settle a safe XNU physical RAM window and usable boot_args/ADT shape,
+run the S10 XNU build with `MACHINE_CONFIG=S10`, fix any compile failures, build
+an XNU payload and Odin boot image, and test via the supported reversible boot
+path. No framebuffer, storage, touch, power, or iOS service driver has been
+ported; this is not yet a usable iOS system. Confirm any destructive step with
+the user before running it. Keep firmware, device dumps, serials, and Apple
+artifacts out of git.
+
+**Next concrete action:** finish local review/build of the shim and converter,
+update this handoff, commit source/docs only, then run XNU GitHub Actions once
+GitHub CLI/authentication is available (or when a push/CI trigger is authorized).
 
 ## Historical sweet handoff (2026-10-15)
 
