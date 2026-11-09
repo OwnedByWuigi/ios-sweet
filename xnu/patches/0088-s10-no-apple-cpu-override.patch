@@ -1,0 +1,16 @@
+diff --git a/osfmk/arm64/start.s b/osfmk/arm64/start.s
+index f8d0d2e..380d51c 100644
+--- a/osfmk/arm64/start.s
++++ b/osfmk/arm64/start.s
+@@ -780,8 +780,9 @@ common_start:
+ 	APPLY_TUNABLES x12, x13, x14
+ 
+ 
+-#if HAS_CLUSTER
+-	// Unmask external IRQs if we're restarting from non-retention WFI
++#if HAS_CLUSTER && !defined(S10)
++	// Apple cluster CPUs use CPU_OVRD to unmask external IRQs after WFI.
++	// Exynos has clustered MPIDRs but no Apple CPU_OVRD system register.
+ 	mrs		x9, CPU_OVRD
+ 	and		x9, x9, #(~(ARM64_REG_CYC_OVRD_irq_mask | ARM64_REG_CYC_OVRD_fiq_mask))
+ 	msr		CPU_OVRD, x9

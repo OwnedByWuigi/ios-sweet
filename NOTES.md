@@ -102,6 +102,14 @@ Validated application in order against the local XNU 8796 source snapshot after 
 
 Changes are committed locally. The checkout has no GitHub CLI authentication, so the commit cannot yet be pushed to trigger Actions. Next: push the commit, inspect the new kernel and buildtree artifacts, and address any remaining unresolved symbols or compiler/link errors.
 
+## S10 Actions assembler failure (run `42544623680`, 2026-11-09)
+
+The user supplied a follow-up job log (`/tmp/s10-actions-new.log`; do not commit). Patches 0082–0087 all applied, and the previous undefined-symbol link failure did not recur. The build now stops assembling `osfmk/arm64/start.s`: `CPU_OVRD` is not a readable/writable system register on Exynos, followed by two dependent operand errors. Cause: `S10.h` sets `HAS_CLUSTER=1` for Exynos Aff1 cluster-aware MPIDRs, and XNU also used that Apple cluster flag to emit Apple-specific `CPU_OVRD` IRQ-unmask instructions.
+
+Added `0088-s10-no-apple-cpu-override.patch` to suppress only those Apple CPU override instructions on S10 while retaining the earlier `HAS_CLUSTER` MPIDR affinity logic. Patch application was checked against local XNU snapshot `eaa1bae`; no macOS kernel build has yet confirmed compilation or exposed subsequent failures. The run did not produce `kernel.development.s10`.
+
+Next: commit and push 0088; inspect the next S10 Actions log for remaining build failures. Run `42544623680` proves patch application and the master config are now selected far enough to reach assembly, but does not validate a kernel.
+
 ## Historical sweet handoff (2026-10-15)
 
 ### >>> UPDATE 2026-10-18 (read first, then the 10-17 handoff below) <<<

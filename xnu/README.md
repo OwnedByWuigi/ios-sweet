@@ -23,6 +23,8 @@ core types. `0083-s10-platform-expert.patch`
 adds an XNU `IODTPlatformExpert` for `samsung,exynos9820` and publishes the
 device-tree CPU/device nubs. `0084-s10-single-cpu-bringup.patch` registers one
 boot CPU from the ADT; secondary CPU startup and IPIs remain unimplemented.
+`0088-s10-no-apple-cpu-override.patch` keeps the Exynos cluster-aware MPIDR
+path while skipping Apple-only `CPU_OVRD` accesses.
 `0085-s10-gicv2-timer.patch` adds a first memory-mapped GICD/GICC IRQ path
 using the stock DT register regions and virtual timer PPI 27. The AP DT uses
 the `arm,cortex-a15-gic` / `arm,cortex-a9-gic` binding; non-secure EL1 access
