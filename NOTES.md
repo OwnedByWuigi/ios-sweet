@@ -82,6 +82,16 @@ selectable via `machine_config=SWEET`. The runner migration is in commit
 `main`, but GitHub rejected the request because this workspace has no HTTPS
 credentials. The S10 workflow has not run yet.
 
+## S10 Actions failure diagnosis (2026-11-09)
+
+The user supplied a hosted Actions job log (saved locally as `/tmp/xnu-actions-run.log`; do not commit). It is an S10 build: the log sets `MACHINE_CONFIG=S10`, selects `DEVELOPMENT ARM64 S10`, compiles with `-DARM64_BOARD_CONFIG_S10`, and targets `kernel.development.s10.unstripped`. It does **not** produce a kernel; the artifact step reports no `kernel.*` file.
+
+Two independent defects are visible:
+1. Patches `0083-s10-platform-expert.patch` and `0084-s10-single-cpu-bringup.patch` are skipped by the patch loop. 0083 fails at `iokit/conf/files.arm64:8`; 0084 fails at `iokit/KernelConfigTables.cpp:42` and `iokit/conf/files.arm64:9`. So neither S10 platform expert nor CPU registration is compiled. The generic XNU build continues despite skipped patches.
+2. Final link fails with 264 undefined arm64 symbols, including cache maintenance, `__start`, pmap, machine, and arm routines. `doconf` selects `MASTER.arm64.s10.MacOSX`, then `.s10`, then `.MacOSX`, then `.arm64`; this checkout has no S10 master, so it falls back to `MASTER.arm64.MacOSX`. That master uses `ARM_EXTRAS_BASE`, while the working Sweet master explicitly enables `nos_arm_asm nos_arm_pmap` in its kernel base. This strongly explains the missing generic ARM implementations, though a new CI run is needed to prove the fix. The absent S10 master config is a concrete config defect.
+
+Next: add a S10 master config enabling the open-source ARM asm and pmap options; repair 0083/0084 patch contexts against the actual patch-series source baseline; then rerun Actions and inspect the kernel and buildtree artifacts. No bootable kernel exists yet.
+
 ## Historical sweet handoff (2026-10-15)
 
 ### >>> UPDATE 2026-10-18 (read first, then the 10-17 handoff below) <<<
