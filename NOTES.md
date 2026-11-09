@@ -28,8 +28,16 @@ are incomplete versus the final ABL tree.
   the unsupported GICv3 system-register assumption with an initial GICD/GICC
   MMIO interrupt/timer path. It remains unbuilt and hardware-unverified.
 - Patch chain through 0085 was applied in the local ignored XNU 8796.141.3
-  worktree. Full XNU CI has not run: `gh` is unavailable and no GitHub CLI
+  worktree. S10 CI has not run: `gh` is unavailable and no GitHub CLI
   credentials are configured. Source is in ignored `research/xnu-8796.141.3/`.
+- GitHub Actions run `42540209218` succeeded on 2026-11-09 (head `bf82dbe`,
+  push event). The user supplied `xnu-kernel.zip` and `xnu-buildtree.zip` in
+  the project root; both are ignored and were not committed. The artifact
+  contains only `kernel.development.sweet` (SHA256
+  `00a46f726be3c675c9f7d0153e2a722ea28b7ca49715287baf4f48af40db5a35`), and
+  the build tree has only `DEVELOPMENT_ARM64_SWEET`. Thus this run validates
+  the macOS runner/XNU workflow and builds Sweet, but is not an S10 kernel.
+  Unpacked artifacts are under ignored `research/actions-42540209218/`.
 - New separate `shim/s10/` arm64 Image entry/build path handles EL2->EL1,
   accepts ABL's FDT in x0 and uses the shared payload loader. The shared
   loader now bounds-checks the payload and emits zero framebuffer boot_args
@@ -55,10 +63,13 @@ ported; this is not yet a usable iOS system. Confirm any destructive step with
 the user before running it. Keep firmware, device dumps, serials, and Apple
 artifacts out of git.
 
-**Next concrete action:** run the XNU GitHub Actions workflow with
-`machine_config=S10` once GitHub CLI/authentication is available. Fix any build
-errors, then package a real XNU kernel and test boot only through the verified
-reversible Samsung boot path.
+**Next concrete action:** dispatch the XNU GitHub Actions workflow on `main`
+with `macos_version=13.5`, `kernel_config=DEVELOPMENT`, and
+`machine_config=S10`. Confirm the resulting artifact is named
+`kernel.development.s10`; inspect the buildtree and fix any S10 errors before
+attempting to package it. Then extract the actual handset's live FDT and derive
+a safe ADT/RAM window; do not use the overlay-20 sample conversion as a boot
+input.
 
 **Actions runner update (2026-11-09):** the user's failed run reported
 `macos-14-arm64-us-default` unsupported. GitHub retired macOS 14 images on
