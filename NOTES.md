@@ -43,8 +43,7 @@ are incomplete versus the final ABL tree.
   handset RAM choice. `tools/mks10boot.py` packages the shim and XNU payload
   into Android boot v1 matching the stock header; no payload/kernel exists yet.
 - `devices/beyond1lte/README.md` and `xnu/README.md` describe current evidence
-  and gaps. `git diff --check` has only patch-file whitespace diagnostics from
-  normal unified-diff context lines; review before commit.
+  and gaps. Samsung firmware inputs are ignored/untracked and were not committed.
 
 **Still required for a boot:** obtain an actual live ABL FDT (including chosen,
 initrd, selected overlay and complete reservations), verify shim load/EL on
@@ -60,6 +59,13 @@ artifacts out of git.
 `machine_config=S10` once GitHub CLI/authentication is available. Fix any build
 errors, then package a real XNU kernel and test boot only through the verified
 reversible Samsung boot path.
+
+**Actions runner update (2026-11-09):** the user's failed run reported
+`macos-14-arm64-us-default` unsupported. GitHub retired macOS 14 images on
+2026-11-02. Workflow changed to `macos-15`, whose hosted image includes Xcode
+16. Patch 0086 adds the `IORPC.kernelContent` field expected by that IIG to
+both XNU IORPC headers. It applies to the local 8796.141.3 tree; CI has not
+rerun yet. Fix committed as `4f44a0d` (`ci: move XNU build to supported macOS runner`).
 
 ## Historical sweet handoff (2026-10-15)
 
