@@ -14,7 +14,10 @@ Fetch the latest build: `gh run download -R dipa-studio/ios-sweet -n xnu-kernel 
 ## Galaxy S10 Exynos (`S10`)
 
 `xnu/patches/0082-s10-machine-config.patch` adds an isolated XNU `MACHINE_CONFIG=S10`
-compile target for the Exynos 9820 CPU complex. Stock SM-G973F AP DT evidence
+compile target for the Exynos 9820 CPU complex. `0087-s10-master-config.patch`
+adds the matching `MASTER.arm64.s10`, based on the working plain-arm64 Sweet
+config and enabling XNU’s open-source ARM assembly and pmap implementations
+(`nos_arm_asm`, `nos_arm_pmap`) instead of expecting Apple’s unavailable SoC KDK library. Stock SM-G973F AP DT evidence
 shows eight CPU nodes across two MPIDR Aff1 clusters and three compatible
 core types. `0083-s10-platform-expert.patch`
 adds an XNU `IODTPlatformExpert` for `samsung,exynos9820` and publishes the
@@ -29,7 +32,9 @@ references only. A separate S10 arm64 shim now builds locally, and
 `tools/mkadt-s10.py` converts a merged FDT to a minimal one-CPU ADT. Neither
 has been tested on-device, and the sample DTB is pre-bootloader rather than
 the live tree. Storage, display, input, the final memory map, and a bootable
-XNU build remain unfinished. No S10 kernel has been built or booted.
+XNU build remain unfinished. The first S10 Actions build selected the S10 target
+but failed at link; its missing master config and skipped S10 registration hunks
+are fixed in the current patch series. No S10 kernel has been built or booted.
 
 Once the patch can be built in the pinned XNU 8796 workflow, use the `S10`
 machine config for compile diagnostics. A successful build will not by itself

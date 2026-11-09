@@ -92,6 +92,16 @@ Two independent defects are visible:
 
 Next: add a S10 master config enabling the open-source ARM asm and pmap options; repair 0083/0084 patch contexts against the actual patch-series source baseline; then rerun Actions and inspect the kernel and buildtree artifacts. No bootable kernel exists yet.
 
+## S10 Actions failure fixes (2026-11-09)
+
+Fixed the two actionable failures from the supplied S10 job log:
+- Added `0087-s10-master-config.patch`, creating `config/MASTER.arm64.s10` with `nos_arm_asm` and `nos_arm_pmap`, following the working Sweet plain-arm64 config without its Sweet-only filesystem features.
+- Reworked the source registration hunks in patches 0083 and 0084 into context-free insertions after the stable initial IOKit file entries. The prior hunks were tied to Sweet file-list context and were skipped by CI.
+
+Validated application in order against the local XNU 8796 source snapshot after the S10 machine config (`dd93151`): 0083, 0084, and 0087 all passed `git apply --check` and applied. This is patch-application validation only; no XNU link/build or handset boot has run. The exact log’s 264 undefined symbols remain to be checked by the next Actions build.
+
+Changes are committed locally. The checkout has no GitHub CLI authentication, so the commit cannot yet be pushed to trigger Actions. Next: push the commit, inspect the new kernel and buildtree artifacts, and address any remaining unresolved symbols or compiler/link errors.
+
 ## Historical sweet handoff (2026-10-15)
 
 ### >>> UPDATE 2026-10-18 (read first, then the 10-17 handoff below) <<<

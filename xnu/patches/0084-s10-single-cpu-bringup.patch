@@ -162,11 +162,8 @@ index 83adaa6..ad85370 100644
      "   {"
      "     'IOClass'         = SweetPlatformExpert;"
 diff --git a/iokit/conf/files.arm64 b/iokit/conf/files.arm64
-index aac1a7c..fe35759 100644
+index aac1a7c..0000000 100644
 --- a/iokit/conf/files.arm64
 +++ b/iokit/conf/files.arm64
-@@ -9,3 +9,4 @@ iokit/Kernel/arm/AppleARMSMP.cpp    					optional iokitcpp
- # SWEET device-tree platform (empty translation unit on other boards)
- iokit/Kernel/arm/SweetPlatformExpert.cpp                         optional iokitcpp
- iokit/Kernel/arm/S10PlatformExpert.cpp                           optional iokitcpp
+@@ -8,0 +9 @@
 +iokit/Kernel/arm/S10CPU.cpp                                      optional iokitcpp
