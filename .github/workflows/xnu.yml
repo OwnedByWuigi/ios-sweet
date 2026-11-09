@@ -16,6 +16,7 @@ on:
         description: make -k (collect all compile errors in one run)
         default: "true"
   push:
+    # Push builds validate the default SWEET config; select S10 via workflow_dispatch.
     branches: [main]
     paths:
       - "xnu/patches/**"
