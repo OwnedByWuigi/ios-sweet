@@ -110,6 +110,14 @@ Added `0088-s10-no-apple-cpu-override.patch` to suppress only those Apple CPU ov
 
 Next: commit and push 0088; inspect the next S10 Actions log for remaining build failures. Run `42544623680` proves patch application and the master config are now selected far enough to reach assembly, but does not validate a kernel.
 
+## S10 Actions link failure (run `42546021587`, 2026-11-10)
+
+The user supplied the job log (`/tmp/s10-actions-2026-11-10.log`; do not commit). S10 patches 0082–0088 all applied. The S10 config and `start.s` guard worked: the build reached final link, with just two unresolved symbols:
+- `_ml_enable_monitor`, called unconditionally by `arm_vm_init()`. Patch 0008 supplies the non-monitor stub only under `#if defined(SWEET)`, so the S10 build omits it even though S10 also has no Apple monitor.
+- `_sweet_sample_task`, referenced by `bsd/dev/sweet_sample.c`. Patch 0054 adds that source to `bsd/conf/files` as `standard` for every machine, but its implementation in `osfmk/kern/exception.c` is inside the SWEET-only conditional. This is a Sweet diagnostic source leaking into S10’s link.
+
+No kernel artifact was produced. These are separate from earlier unresolved core ARM symbols, which are no longer reported. Next fixes: make the no-monitor stub available to both SWEET and S10 (or any non-Apple target that needs it), and make the process sampler source/registration SWEET-only (rather than broadening the S10 build with Sweet diagnostics). Then rerun S10 Actions and inspect the next failure. CI still has not demonstrated a successful S10 kernel build.
+
 ## Historical sweet handoff (2026-10-15)
 
 ### >>> UPDATE 2026-10-18 (read first, then the 10-17 handoff below) <<<
