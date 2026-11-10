@@ -330,17 +330,17 @@ index c803e4e..c90ec1a 100644
  	return dec;
  }
  
-+#if defined(SWEET)
++#if defined(SWEET) || defined(S10)
 +/*
-+ * sweet: arm_vm_init() calls this unconditionally; Apple's definition (it
-+ * enters the PPL/monitor) ships only in the closed per-SoC library. There is
-+ * no monitor on SWEET.
++ * Non-Apple arm64 targets without a monitor need this no-op: arm_vm_init()
++ * calls it unconditionally, while Apple's implementation lives in the
++ * closed per-SoC library.
 + */
 +void
 +ml_enable_monitor(void)
 +{
 +}
-+#endif /* SWEET */
++#endif /* SWEET || S10 */
 +
  boolean_t
  ml_get_timer_pending(void)

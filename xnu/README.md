@@ -17,7 +17,8 @@ Fetch the latest build: `gh run download -R dipa-studio/ios-sweet -n xnu-kernel 
 compile target for the Exynos 9820 CPU complex. `0087-s10-master-config.patch`
 adds the matching `MASTER.arm64.s10`, based on the working plain-arm64 Sweet
 config and enabling XNU’s open-source ARM assembly and pmap implementations
-(`nos_arm_asm`, `nos_arm_pmap`) instead of expecting Apple’s unavailable SoC KDK library. Stock SM-G973F AP DT evidence
+(`nos_arm_asm`, `nos_arm_pmap`) instead of expecting Apple’s unavailable SoC KDK library. The Sweet process sampler is enabled only in the Sweet master config, and the
+no-monitor stub also covers S10. Stock SM-G973F AP DT evidence
 shows eight CPU nodes across two MPIDR Aff1 clusters and three compatible
 core types. `0083-s10-platform-expert.patch`
 adds an XNU `IODTPlatformExpert` for `samsung,exynos9820` and publishes the

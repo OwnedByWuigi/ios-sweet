@@ -118,6 +118,14 @@ The user supplied the job log (`/tmp/s10-actions-2026-11-10.log`; do not commit)
 
 No kernel artifact was produced. These are separate from earlier unresolved core ARM symbols, which are no longer reported. Next fixes: make the no-monitor stub available to both SWEET and S10 (or any non-Apple target that needs it), and make the process sampler source/registration SWEET-only (rather than broadening the S10 build with Sweet diagnostics). Then rerun S10 Actions and inspect the next failure. CI still has not demonstrated a successful S10 kernel build.
 
+## S10 linker symbol fixes (2026-11-10)
+
+Addressed both unresolved symbols from run `42546021587`:
+- Patch 0008 now supplies `ml_enable_monitor()` for S10 as well as Sweet, because both targets lack Apple’s monitor implementation.
+- The Sweet process sampler source now uses `optional config_sweet_sampler`; that option is enabled only by `MASTER.arm64.sweet`. The Sweet UFS source remains Sweet-only, and S10’s master config does not request the sampler. Later Sweet file-list patches 0060 and 0062 preserve the conditional registration.
+
+Validated patch syntax and applied the added Sweet master option hunk to the locally generated Sweet master. No full XNU build has run after these fixes; the next Actions run must confirm both references disappear and may reveal further issues. The changes are committed locally; this environment has no GitHub CLI authentication to dispatch Actions.
+
 ## Historical sweet handoff (2026-10-15)
 
 ### >>> UPDATE 2026-10-18 (read first, then the 10-17 handoff below) <<<

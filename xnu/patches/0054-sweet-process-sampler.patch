@@ -4,7 +4,7 @@
  
  bsd/dev/memdev.c			standard
  bsd/dev/sweet_ufs.c			standard
-+bsd/dev/sweet_sample.c			standard
++bsd/dev/sweet_sample.c			optional config_sweet_sampler
  bsd/dev/mem.c				standard
  bsd/dev/munge.c 			optional config_requires_u32_munging
  bsd/dev/unix_startup.c			standard
@@ -217,3 +217,13 @@
 +		thread_deallocate(thread);
 +	}
 +}
+
+
+diff --git a/config/MASTER.arm64.sweet b/config/MASTER.arm64.sweet
+--- a/config/MASTER.arm64.sweet
++++ b/config/MASTER.arm64.sweet
+@@ -24,3 +24,3 @@
+ #
+-#  KERNEL_BASE =    [ arm64 config_pmap_ppl medium msgb_large config_requires_u32_munging config_delay_idle_sleep config_proc_udata_storage config_uexc config_darkboot nos_arm_asm nos_arm_pmap ]
++#  KERNEL_BASE =    [ arm64 config_pmap_ppl medium msgb_large config_requires_u32_munging config_delay_idle_sleep config_proc_udata_storage config_uexc config_darkboot nos_arm_asm nos_arm_pmap config_sweet_sampler ]
+ #  KERNEL_RELEASE = [ KERNEL_BASE ]
